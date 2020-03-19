@@ -1,0 +1,9 @@
+{
+	"name": "kvlt_application_ls",
+	"properties": {
+		"type": "AzureKeyVault",
+		"typeProperties": {
+			"baseUrl": "https://azueus2devkvltalertgen.vault.azure.net"
+		}
+	}
+}

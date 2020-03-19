@@ -1,0 +1,75 @@
+{
+	"name": "alter_notebook_pl",
+	"properties": {
+		"activities": [
+			{
+				"name": "alter_notebook_pl",
+				"type": "DatabricksNotebook",
+				"dependsOn": [
+					{
+						"activity": "get_client_config_lkup",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"typeProperties": {
+					"notebookPath": "/dataplatform-retail-alertgeneration/alter_master_notebook",
+					"baseParameters": {
+						"Retailer_Client": {
+							"value": "@pipeline().parameters.retailer_client_name",
+							"type": "Expression"
+						},
+						"ADLS_Account_Name": {
+							"value": "@activity('get_client_config_lkup').output.firstRow.adlsAccountName",
+							"type": "Expression"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "azuredatabricks_alertgen_ls",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "get_client_config_lkup",
+				"type": "Lookup",
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"typeProperties": {
+					"source": {
+						"type": "BlobSource",
+						"recursive": true
+					},
+					"dataset": {
+						"referenceName": "wasb_alert_generation_ds",
+						"type": "DatasetReference",
+						"parameters": {
+							"fileName": {
+								"value": "@concat('params_alert_generation_',pipeline().parameters.retailer_client_name,'.json')",
+								"type": "Expression"
+							}
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"retailer_client_name": {
+				"type": "String"
+			}
+		}
+	}
+}

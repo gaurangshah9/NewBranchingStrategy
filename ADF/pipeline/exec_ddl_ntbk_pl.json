@@ -1,0 +1,50 @@
+{
+	"name": "exec_ddl_ntbk_pl",
+	"properties": {
+		"activities": [
+			{
+				"name": "ntbk_execute_informationmart_ddl",
+				"type": "DatabricksNotebook",
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"typeProperties": {
+					"notebookPath": "/dataplatform-retail-alertgeneration/retaillink_informationmart_retailer_client_ddl_template",
+					"baseParameters": {
+						"Retailer_Client": {
+							"value": "@pipeline().parameters.Retailer_Client",
+							"type": "Expression"
+						},
+						"ADLS_Account_Name": {
+							"value": "@pipeline().parameters.ADLS_Account_Name",
+							"type": "Expression"
+						},
+						"Drop_Create_All_Y_N_Flag": {
+							"value": "@pipeline().parameters.Drop_Create_All_Y_N_Flag",
+							"type": "Expression"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "azuredatabricks_alertgen_ls",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"parameters": {
+			"Retailer_Client": {
+				"type": "String"
+			},
+			"ADLS_Account_Name": {
+				"type": "String"
+			},
+			"Drop_Create_All_Y_N_Flag": {
+				"type": "String"
+			}
+		}
+	}
+}

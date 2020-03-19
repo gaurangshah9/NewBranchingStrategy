@@ -1,0 +1,29 @@
+{
+	"name": "trigger-asda-generalmills-uk-grouping",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "fcst_drfe_osa_invalid_low_expected_grouping_pl",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"retailer": "asda",
+					"client": "generalmills",
+					"country": "uk"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Week",
+				"interval": 8,
+				"startTime": "2020-02-28T15:00:00.000Z",
+				"timeZone": "UTC"
+			}
+		}
+	}
+}

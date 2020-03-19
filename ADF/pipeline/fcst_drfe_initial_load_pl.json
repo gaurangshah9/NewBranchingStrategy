@@ -1,0 +1,89 @@
+{
+	"name": "fcst_drfe_initial_load_pl",
+	"properties": {
+		"activities": [
+			{
+				"name": "fcst_drfe_initial_load_nb",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/dataplatform-retail-forecastengine/03.2_Nowcast_Driver",
+					"baseParameters": {
+						"retailer": {
+							"value": "@pipeline().parameters.retailer",
+							"type": "Expression"
+						},
+						"client": {
+							"value": "@pipeline().parameters.client",
+							"type": "Expression"
+						},
+						"countrycode": {
+							"value": "@pipeline().parameters.countrycode",
+							"type": "Expression"
+						},
+						"runid": {
+							"value": "auto",
+							"type": "Expression"
+						},
+						"ENVIRONMENT": "prod",
+						"MODEL_SOURCE": "prod",
+						"start_date": {
+							"value": "@pipeline().parameters.start_date",
+							"type": "Expression"
+						},
+						"end_date": {
+							"value": "@pipeline().parameters.end_date",
+							"type": "Expression"
+						}
+					},
+					"libraries": [
+						{
+							"egg": "dbfs:/databricks/egg/acosta.alerting-latest.egg"
+						},
+						{
+							"pypi": {
+								"package": "catboost==0.16.5"
+							}
+						},
+						{
+							"pypi": {
+								"package": "pygam"
+							}
+						}
+					]
+				},
+				"linkedServiceName": {
+					"referenceName": "azuredatabricks_initial_load_retfceng_ls",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"parameters": {
+			"retailer": {
+				"type": "string"
+			},
+			"client": {
+				"type": "string"
+			},
+			"countrycode": {
+				"type": "string"
+			},
+			"start_date": {
+				"type": "string"
+			},
+			"end_date": {
+				"type": "string"
+			}
+		},
+		"annotations": []
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

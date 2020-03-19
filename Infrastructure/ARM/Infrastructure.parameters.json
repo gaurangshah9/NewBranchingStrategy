@@ -1,0 +1,38 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "ApplicationADF": {
+            "value": "azu-eus2-dev-df-IngestRetailLink"
+        },
+        "ApplicationKeyVault": {
+            "value": "azueus2devkvltretaillink"
+        },
+        "ApplicationDatabricksWorkspace": {
+            "value": "azu-eus2-dev-dbr-RetailLink"
+        },
+        "ServicePrincipalGroupObjectId": {
+            "value": "ee5ecee9-82c2-4951-9c4b-0ff0dcffd737"
+        },
+        "GitHubProxyURL" : {
+            "value": "https://azueus2devfagithubproxy.azurewebsites.net/api/GitHubProxy"
+        },
+        "tags" : {
+            "value": [
+                {
+                    "BusinessUnit" : "Data Architecture",
+                    "CostCenter" : "11131100"
+                }
+            ]
+        },
+        "LogAnalyticsRG": {		
+            "value": "azu-eus2-prd-rg-datalake"		
+        },
+        "LogAnalyticsWorkspace": {		
+            "value": "azu-eus2-prd-loganalytics-dataplatform"		
+        },
+        "LogAnalyticsSubscriptionId": {		
+          "value": ""		
+        }
+    }
+}

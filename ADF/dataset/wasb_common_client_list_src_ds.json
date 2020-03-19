@@ -1,0 +1,23 @@
+{
+	"name": "wasb_common_client_list_src_ds",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "wasb_adlsrccode_ls",
+			"type": "LinkedServiceReference"
+		},
+		"type": "AzureBlob",
+		"typeProperties": {
+			"format": {
+				"type": "TextFormat",
+				"columnDelimiter": ",",
+				"rowDelimiter": "",
+				"nullValue": "\\N",
+				"treatEmptyAsNull": true,
+				"skipLineCount": 0,
+				"firstRowAsHeader": false
+			},
+			"fileName": "client_list.txt",
+			"folderPath": "dataplatform-retail-alertgeneration/client_config"
+		}
+	}
+}

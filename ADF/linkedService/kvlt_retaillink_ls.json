@@ -1,0 +1,9 @@
+{
+	"name": "kvlt_retaillink_ls",
+	"properties": {
+		"type": "AzureKeyVault",
+		"typeProperties": {
+			"baseUrl": "https://azueus2devkvltRetailLink.vault.azure.net/"
+		}
+	}
+}

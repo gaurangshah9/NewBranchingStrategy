@@ -1,0 +1,22 @@
+{
+	"name": "azuredatabricks_alertgen_ls",
+	"properties": {
+		"type": "AzureDatabricks",
+		"typeProperties": {
+			"domain": "https://eastus2.azuredatabricks.net",
+			"accessToken": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "kvlt_application_ls",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "dbr-access-token"
+			},
+			"newClusterNodeType": "Standard_E16s_v3",
+			"newClusterNumOfWorker": "5:30",
+			"newClusterVersion": "4.3.x-scala2.11",
+			"newClusterEnableElasticDisk": true
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/linkedservices"
+}

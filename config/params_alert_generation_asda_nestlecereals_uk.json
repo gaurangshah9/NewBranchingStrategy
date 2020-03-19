@@ -1,0 +1,20 @@
+{
+    "adlsAccountName": "__PlatformADLS__",
+    "countryCode":"uk",
+    "StatusLOESS": "OFF",
+    "StatusDRFE": "ON",
+    "eventHubURL": "__eventHubURL__",
+    "authorizationURL": "__dataplatform-coordinator-eventhub-datasetcompletion-sas__",
+    "recordSourceCode": "drfe",
+    "groupParameters": 
+    
+            {
+                "percentile_high": "0.8",
+                "percentile_low": "0.6",
+                "minimum_pos": "3",
+                "week_number": "12",
+                "group_filter_percentile": "0.8",
+                "min_days_ratio": "0.4",
+                "membership_multipler": "1"
+             }
+}

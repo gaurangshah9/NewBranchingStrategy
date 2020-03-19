@@ -1,0 +1,27 @@
+{
+	"name": "trigger-asda-nestlecereals-uk",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "alert_generation_daily_pl",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"endFilePath": "@triggerBody().folderPath",
+					"endFileName": "@triggerBody().fileName"
+				}
+			}
+		],
+		"type": "BlobEventsTrigger",
+		"typeProperties": {
+			"blobPathBeginsWith": "/asda-nestlecereals-uk/blobs/infomart_epos_endfile",
+			"scope": "/subscriptions/1824bc1e-b99a-4dab-9a84-b0d5f05f83c7/resourceGroups/azu-eus2-dev-rg-IngestRetailLink/providers/Microsoft.Storage/storageAccounts/azueus2devsaretaillink",
+			"events": [
+				"Microsoft.Storage.BlobCreated"
+			]
+		}
+	}
+}

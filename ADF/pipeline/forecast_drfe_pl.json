@@ -1,0 +1,243 @@
+{
+	"name": "forecast_drfe_pl",
+	"properties": {
+		"activities": [
+			{
+				"name": "load_drfe_forecast_parameters",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/dataplatform-retail-alertgeneration/forecast_drfe_load_parameters",
+					"baseParameters": {
+						"ADLS_Account_Name": {
+							"value": "@pipeline().parameters.ADLS_Account_Name",
+							"type": "Expression"
+						},
+						"Retailer_Client": {
+							"value": "@pipeline().parameters.Retailer_Client",
+							"type": "Expression"
+						},
+						"Days_To_Forecast": {
+							"value": "@variables('var_Days_To_Forecast')",
+							"type": "Expression"
+						},
+						"ADF_Pipeline_RunId": {
+							"value": "@pipeline().RunId",
+							"type": "Expression"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "azuredatabricks_alertgen_ls",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "Get DRFE Parameters",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "load_drfe_forecast_parameters",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "BlobSource",
+						"recursive": true
+					},
+					"dataset": {
+						"referenceName": "wasb_alert_generation_ds",
+						"type": "DatasetReference",
+						"parameters": {
+							"fileName": {
+								"value": "@concat('dynamic_params_alert_generation_', pipeline().parameters.Retailer_Client, '_drfe.json')",
+								"type": "Expression"
+							}
+						}
+					},
+					"firstRowOnly": true
+				}
+			},
+			{
+				"name": "Parameters Empty",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Get DRFE Parameters",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(activity('Get DRFE Parameters').output.firstRow.NUM_DAYS_TO_PREDICT_PARAM,'0')",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "update load_ts",
+							"type": "DatabricksNotebook",
+							"dependsOn": [
+								{
+									"activity": "Forecast DRFE",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"notebookPath": "/dataplatform-retail-alertgeneration/forecast_drfe_update_load_ts",
+								"baseParameters": {
+									"Retailer_Client": {
+										"value": "@pipeline().parameters.Retailer_Client",
+										"type": "Expression"
+									},
+									"ADF_Pipeline_RunId": {
+										"value": "@pipeline().RunId",
+										"type": "Expression"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "azuredatabricks_alertgen_ls",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "Forecast DRFE",
+							"type": "DatabricksNotebook",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"notebookPath": "/dataplatform-retail-forecastengine/03.1_Inference_Driver",
+								"baseParameters": {
+									"RETAILER_PARAM": {
+										"value": "@activity('Get DRFE Parameters').output.firstRow.RETAILER_PARAM",
+										"type": "Expression"
+									},
+									"CLIENT_PARAM": {
+										"value": "@activity('Get DRFE Parameters').output.firstRow.CLIENT_PARAM",
+										"type": "Expression"
+									},
+									"LAST_DAY_TO_PREDICT_PARAM": {
+										"value": "@activity('Get DRFE Parameters').output.firstRow.LAST_DAY_TO_PREDICT_PARAM",
+										"type": "Expression"
+									},
+									"NUM_DAYS_TO_PREDICT_PARAM": {
+										"value": "@activity('Get DRFE Parameters').output.firstRow.NUM_DAYS_TO_PREDICT_PARAM",
+										"type": "Expression"
+									},
+									"MAX_LAG": {
+										"value": "@variables('var_drfee_MAX_LAG')",
+										"type": "Expression"
+									},
+									"ENVIRONMENT": "PROD",
+									"MODEL_SOURCE": "PROD",
+									"INCLUDE_DISCOUNT_FEATURES": "NO",
+									"COUNTRY_CODE_PARAM": {
+										"value": "@pipeline().parameters.ctry_cd",
+										"type": "Expression"
+									}
+								},
+								"libraries": [
+									{
+										"egg": "dbfs:/databricks/egg/acosta.alerting-latest.egg"
+									},
+									{
+										"pypi": {
+											"package": "scikit-misc "
+										}
+									},
+									{
+										"pypi": {
+											"package": "xgboost"
+										}
+									},
+									{
+										"pypi": {
+											"package": "catboost==0.16.5"
+										}
+									},
+									{
+										"pypi": {
+											"package": "pyarrow==0.13.0"
+										}
+									},
+									{
+										"pypi": {
+											"package": "pygam"
+										}
+									}
+								]
+							},
+							"linkedServiceName": {
+								"referenceName": "azuredatabricks_retfceng_ls",
+								"type": "LinkedServiceReference"
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"ADLS_Account_Name": {
+				"type": "String",
+				"defaultValue": "azueus2devadlsdatalake"
+			},
+			"Retailer_Client": {
+				"type": "String",
+				"defaultValue": "walmart_clorox"
+			},
+			"ctry_cd": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"var_drfee_MAX_LAG": {
+				"type": "String",
+				"defaultValue": "30"
+			},
+			"var_Days_To_Forecast": {
+				"type": "String",
+				"defaultValue": "7"
+			}
+		},
+		"annotations": []
+	}
+}

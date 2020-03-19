@@ -1,0 +1,254 @@
+{
+	"name": "alert_generation_initial_pl",
+	"properties": {
+		"activities": [
+			{
+				"name": "if_condition_loess_alert",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Wait_TaskComplete",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(activity('get_client_config').output.firstRow.StatusLOESS,'ON')",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "lsv_alerts_loess_pl",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "lsv_alerts_loess_pl",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"ADLS_Account_Name": {
+										"value": "@activity('get_client_config').output.firstRow.adlsAccountName",
+										"type": "Expression"
+									},
+									"Retailer_Client": {
+										"value": "@pipeline().parameters.retailer_client_name",
+										"type": "Expression"
+									},
+									"recordSourceCode": "loess"
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "if_condition_drfe_alert",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Wait_TaskComplete",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(activity('get_client_config').output.firstRow.StatusDRFE,'ON')",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "lsv_alerts_drfe_pl",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "lsv_alerts_drfe_pl",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"ADLS_Account_Name": {
+										"value": "@activity('get_client_config').output.firstRow.adlsAccountName",
+										"type": "Expression"
+									},
+									"Retailer_Client": {
+										"value": "@pipeline().parameters.retailer_client_name",
+										"type": "Expression"
+									},
+									"recordSourceCode": "drfe"
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Wait_TaskComplete",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "if_condition_loess_forecast",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "if_condition_drfe_forecast",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 15
+				}
+			},
+			{
+				"name": "if_condition_loess_forecast",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "get_client_config",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(activity('get_client_config').output.firstRow.StatusLOESS,'ON')",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "load_loess_forecast_baseline_unit",
+							"type": "DatabricksNotebook",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"notebookPath": "/dataplatform-retail-alertgeneration/load_loess_forecast_baseline_unit",
+								"baseParameters": {
+									"ADLS_Account_Name": {
+										"value": "@activity('get_client_config').output.firstRow.adlsAccountName",
+										"type": "Expression"
+									},
+									"Retailer_Client": {
+										"value": "@pipeline().parameters.retailer_client_name",
+										"type": "Expression"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "azuredatabricks_alertgen_ls",
+								"type": "LinkedServiceReference"
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "if_condition_drfe_forecast",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "get_client_config",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(activity('get_client_config').output.firstRow.StatusDRFE,'ON')",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "forecast_drfe_pl",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "forecast_drfe_pl",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"ADLS_Account_Name": {
+										"value": "@activity('get_client_config').output.firstRow.adlsAccountName",
+										"type": "Expression"
+									},
+									"Retailer_Client": {
+										"value": "@pipeline().parameters.retailer_client_name",
+										"type": "Expression"
+									},
+									"ctry_cd": {
+										"value": "@activity('get_client_config').output.firstRow.countryCode",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "get_client_config",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "BlobSource",
+						"recursive": true
+					},
+					"dataset": {
+						"referenceName": "wasb_alert_generation_ds",
+						"type": "DatasetReference",
+						"parameters": {
+							"fileName": {
+								"value": "@concat('params_alert_generation_',pipeline().parameters.retailer_client_name,'.json')",
+								"type": "Expression"
+							}
+						}
+					},
+					"firstRowOnly": true
+				}
+			}
+		],
+		"parameters": {
+			"retailer_client_name": {
+				"type": "String"
+			}
+		},
+		"annotations": []
+	}
+}

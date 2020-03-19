@@ -1,0 +1,194 @@
+{
+	"name": "fcst_drfe_osa_invalid_low_expected_grouping_pl",
+	"properties": {
+		"activities": [
+			{
+				"name": "load_low_expected_grouping",
+				"type": "DatabricksNotebook",
+				"dependsOn": [
+					{
+						"activity": "get_client_config_lkup",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/dataplatform-retail-alertgeneration/load_osa_invalid_low_expected_grouping",
+					"baseParameters": {
+						"retailer_client": {
+							"value": "@concat(pipeline().parameters.retailer,'_',pipeline().parameters.client)",
+							"type": "Expression"
+						},
+						"percentile_high": {
+							"value": "@activity('get_client_config_lkup').output.firstRow.groupParameters.percentile_high",
+							"type": "Expression"
+						},
+						"percentile_low": {
+							"value": "@activity('get_client_config_lkup').output.firstRow.groupParameters.percentile_low",
+							"type": "Expression"
+						},
+						"minimum_pos": {
+							"value": "@activity('get_client_config_lkup').output.firstRow.groupParameters.minimum_pos",
+							"type": "Expression"
+						},
+						"week_number": {
+							"value": "@activity('get_client_config_lkup').output.firstRow.groupParameters.week_number",
+							"type": "Expression"
+						},
+						"group_filter_percentile": {
+							"value": "@activity('get_client_config_lkup').output.firstRow.groupParameters.group_filter_percentile",
+							"type": "Expression"
+						},
+						"grouping_type": {
+							"value": "LOW_EXPECTED_ALERT",
+							"type": "Expression"
+						},
+						"country_cd": {
+							"value": "@activity('get_client_config_lkup').output.firstRow.countryCode",
+							"type": "Expression"
+						},
+						"record_source_code": {
+							"value": "@activity('get_client_config_lkup').output.firstRow.recordSourceCode",
+							"type": "Expression"
+						},
+						"min_days_ratio": {
+							"value": "@activity('get_client_config_lkup').output.firstRow.groupParameters.min_days_ratio",
+							"type": "Expression"
+						},
+						"adls_account_name": {
+							"value": "@activity('get_client_config_lkup').output.firstRow.adlsAccountName",
+							"type": "Expression"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "azuredatabricks_alertgen_ls",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "get_client_config_lkup",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "BlobSource",
+						"recursive": true
+					},
+					"dataset": {
+						"referenceName": "wasb_alert_generation_ds",
+						"type": "DatasetReference",
+						"parameters": {
+							"fileName": {
+								"value": "@concat('params_alert_generation_',pipeline().parameters.retailer,'_',pipeline().parameters.client,'_',pipeline().parameters.country,'.json')",
+								"type": "Expression"
+							}
+						}
+					}
+				}
+			},
+			{
+				"name": "load_invalid_grouping",
+				"type": "DatabricksNotebook",
+				"dependsOn": [
+					{
+						"activity": "get_client_config_lkup",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/dataplatform-retail-alertgeneration/load_osa_invalid_low_expected_grouping",
+					"baseParameters": {
+						"retailer_client": {
+							"value": "@concat(pipeline().parameters.retailer,'_',pipeline().parameters.client)",
+							"type": "Expression"
+						},
+						"percentile_high": {
+							"value": "@activity('get_client_config_lkup').output.firstRow.groupParameters.percentile_high",
+							"type": "Expression"
+						},
+						"percentile_low": {
+							"value": "@activity('get_client_config_lkup').output.firstRow.groupParameters.percentile_low",
+							"type": "Expression"
+						},
+						"minimum_pos": {
+							"value": "@activity('get_client_config_lkup').output.firstRow.groupParameters.minimum_pos",
+							"type": "Expression"
+						},
+						"week_number": {
+							"value": "@activity('get_client_config_lkup').output.firstRow.groupParameters.week_number",
+							"type": "Expression"
+						},
+						"group_filter_percentile": {
+							"value": "@activity('get_client_config_lkup').output.firstRow.groupParameters.group_filter_percentile",
+							"type": "Expression"
+						},
+						"grouping_type": {
+							"value": "INVALID_ALERT",
+							"type": "Expression"
+						},
+						"country_cd": {
+							"value": "@activity('get_client_config_lkup').output.firstRow.countryCode",
+							"type": "Expression"
+						},
+						"record_source_code": {
+							"value": "@activity('get_client_config_lkup').output.firstRow.recordSourceCode",
+							"type": "Expression"
+						},
+						"min_days_ratio": {
+							"value": "@activity('get_client_config_lkup').output.firstRow.groupParameters.min_days_ratio",
+							"type": "Expression"
+						},
+						"adls_account_name": {
+							"value": "@activity('get_client_config_lkup').output.firstRow.adlsAccountName",
+							"type": "Expression"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "azuredatabricks_alertgen_ls",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"parameters": {
+			"retailer": {
+				"type": "string"
+			},
+			"client": {
+				"type": "string"
+			},
+			"country": {
+				"type": "string"
+			}
+		},
+		"annotations": []
+	}
+}

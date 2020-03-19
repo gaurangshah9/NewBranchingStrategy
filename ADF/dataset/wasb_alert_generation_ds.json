@@ -1,0 +1,26 @@
+{
+	"name": "wasb_alert_generation_ds",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "wasb_adlsrccode_ls",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"fileName": {
+				"type": "String"
+			}
+		},
+		"type": "AzureBlob",
+		"typeProperties": {
+			"format": {
+				"type": "JsonFormat",
+				"filePattern": "setOfObjects"
+			},
+			"fileName": {
+				"value": "@dataset().fileName",
+				"type": "Expression"
+			},
+			"folderPath": "dataplatform-retail-alertgeneration/config"
+		}
+	}
+}

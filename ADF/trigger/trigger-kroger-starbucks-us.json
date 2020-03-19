@@ -1,0 +1,28 @@
+{
+	"name": "trigger-kroger-starbucks-us",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "alert_generation_daily_pl",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"endFilePath": "@triggerBody().folderPath",
+					"endFileName": "@triggerBody().fileName"
+				}
+			}
+		],
+		"type": "BlobEventsTrigger",
+		"typeProperties": {
+			"blobPathBeginsWith": "/kroger-starbucks-us/blobs/infomart_endfile/",
+			"ignoreEmptyBlobs": false,
+			"scope": "/subscriptions/1824bc1e-b99a-4dab-9a84-b0d5f05f83c7/resourceGroups/azu-eus2-dev-rg-ingestmarket6/providers/Microsoft.Storage/storageAccounts/azueus2devsamarket6",
+			"events": [
+				"Microsoft.Storage.BlobCreated"
+			]
+		}
+	}
+}

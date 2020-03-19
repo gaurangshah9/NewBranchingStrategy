@@ -1,0 +1,18 @@
+{
+    "id": "infomart_tesco_nestlecereals_uk_dependency",
+    "type": "ADF Pipeline",
+    "linkedServiceName": "azu-eus2-df-AlertGen_ls",
+    "activityName": "alert_generation_daily_pl",
+    "inputParameters": [
+        {
+            "name": "endFilePath",
+            "value": "tesco-nestlecereals-uk/infomart_epos_endfile"
+        }
+    ],
+    "dependencies": [
+        "datavault-tesco_nestlecereals_uk"
+    ],
+    "expectedFrequency": "daily",
+    "expectedStartTime": "00:08:00",
+    "minimumHoursBetweenRuns": 2
+}

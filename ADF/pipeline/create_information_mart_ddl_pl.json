@@ -1,0 +1,84 @@
+{
+	"name": "create_information_mart_ddl_pl",
+	"properties": {
+		"activities": [
+			{
+				"name": "lkp_get_source_list",
+				"type": "Lookup",
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false
+				},
+				"typeProperties": {
+					"source": {
+						"type": "BlobSource",
+						"recursive": true
+					},
+					"dataset": {
+						"referenceName": "wasb_common_client_list_src_ds",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "frlp_walmart_client_list",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "lkp_get_source_list",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('lkp_get_source_list').output.value",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"batchCount": 5,
+					"activities": [
+						{
+							"name": "exec_information_mart_ddl_pl",
+							"type": "ExecutePipeline",
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "exec_ddl_ntbk_pl",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"Retailer_Client": {
+										"value": "@replace(replace(toLower(item().Prop_0),'-',''), ' ','')",
+										"type": "Expression"
+									},
+									"ADLS_Account_Name": {
+										"value": "@pipeline().parameters.adls_account_name",
+										"type": "Expression"
+									},
+									"Drop_Create_All_Y_N_Flag": {
+										"value": "@pipeline().parameters.drop_create_all_y_n_flag",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"adls_account_name": {
+				"type": "String"
+			},
+			"drop_create_all_y_n_flag": {
+				"type": "String"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

@@ -1,0 +1,87 @@
+{
+	"name": "forecast_drfe_adhoc_pl",
+	"properties": {
+		"activities": [
+			{
+				"name": "drfe_fcst_pl",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/dataplatform-retail-forecastengine/03.1_Inference_Driver",
+					"baseParameters": {
+						"RETAILER_PARAM": {
+							"value": "@pipeline().parameters.retailer_nm",
+							"type": "Expression"
+						},
+						"CLIENT_PARAM": {
+							"value": "@pipeline().parameters.client_nm",
+							"type": "Expression"
+						},
+						"LAST_DAY_TO_PREDICT_PARAM": {
+							"value": "@pipeline().parameters.last_day_to_predict",
+							"type": "Expression"
+						},
+						"NUM_DAYS_TO_PREDICT_PARAM": {
+							"value": "@pipeline().parameters.num_days_to_predict",
+							"type": "Expression"
+						},
+						"MAX_LAG": "30",
+						"ENVIRONMENT": "PROD",
+						"MODEL_SOURCE": "PROD",
+						"INCLUDE_DISCOUNT_FEATURES": "NO",
+						"COUNTRY_CODE_PARAM": {
+							"value": "@pipeline().parameters.ctry_cd",
+							"type": "Expression"
+						}
+					},
+					"libraries": [
+						{
+							"egg": "dbfs:/databricks/egg/acosta.alerting-latest.egg"
+						},
+						{
+							"pypi": {
+								"package": "catboost==0.16.5"
+							}
+						},
+						{
+							"pypi": {
+								"package": "pygam"
+							}
+						}
+					]
+				},
+				"linkedServiceName": {
+					"referenceName": "azuredatabricks_retfceng_ls",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"parameters": {
+			"retailer_nm": {
+				"type": "string"
+			},
+			"client_nm": {
+				"type": "string"
+			},
+			"ctry_cd": {
+				"type": "string"
+			},
+			"last_day_to_predict": {
+				"type": "string"
+			},
+			"num_days_to_predict": {
+				"type": "string"
+			}
+		},
+		"annotations": []
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

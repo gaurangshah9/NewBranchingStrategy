@@ -1,0 +1,18 @@
+{
+    "id": "infomart_sainsburys_nestlecereals_uk_dependency",
+    "type": "ADF Pipeline",
+    "linkedServiceName": "azu-eus2-df-AlertGen_ls",
+    "activityName": "alert_generation_daily_pl",
+    "inputParameters": [
+        {
+            "name": "endFilePath",
+            "value": "sainsburys-nestlecereals-uk/infomart_epos_endfile"
+        }
+    ],
+    "dependencies": [
+        "datavault-sainsburys_nestlecereals_uk"
+    ],
+    "expectedFrequency": "daily",
+    "expectedStartTime": "00:08:00",
+    "minimumHoursBetweenRuns": 2
+}

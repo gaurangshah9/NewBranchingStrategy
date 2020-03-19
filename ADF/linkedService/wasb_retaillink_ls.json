@@ -1,0 +1,16 @@
+{
+	"name": "wasb_retaillink_ls",
+	"properties": {
+		"type": "AzureBlobStorage",
+		"typeProperties": {
+			"connectionString": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "kvlt_retaillink_ls",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "azueus2-sa-retaillink-connString"
+			}
+		}
+	}
+}

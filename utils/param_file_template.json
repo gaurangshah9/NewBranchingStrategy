@@ -1,0 +1,8 @@
+{
+    "adlsAccountName": "__PlatformADLS__",
+    "countryCode":"${countryCode}",
+    "StatusLOESS": "${StatusLOESS}",
+    "StatusDRFE": "${StatusDRFE}",
+    "eventHubURL": "__eventHubURL__",
+    "authorizationURL": "__dataplatform-coordinator-eventhub-datasetcompletion-sas__"
+}

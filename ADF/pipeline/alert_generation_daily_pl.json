@@ -1,0 +1,403 @@
+{
+	"name": "alert_generation_daily_pl",
+	"properties": {
+		"activities": [
+			{
+				"name": "if_condition_loess_alert",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Get Batch_Ts",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(activity('get_client_config').output.firstRow.StatusLOESS,'ON')",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "lsv_alerts_loess_pl",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "lsv_alerts_loess_pl",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"ADLS_Account_Name": {
+										"value": "@activity('get_client_config').output.firstRow.adlsAccountName",
+										"type": "Expression"
+									},
+									"Retailer_Client": {
+										"value": "@replace(first(split(pipeline().parameters.endFilePath,'/')),'-','_')",
+										"type": "Expression"
+									},
+									"recordSourceCode": "loess"
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "if_condition_drfe_alert",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Get Batch_Ts",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(activity('get_client_config').output.firstRow.StatusDRFE,'ON')",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "lsv_alerts_drfe_pl",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "lsv_alerts_drfe_pl",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"ADLS_Account_Name": {
+										"value": "@activity('get_client_config').output.firstRow.adlsAccountName",
+										"type": "Expression"
+									},
+									"Retailer_Client": {
+										"value": "@replace(first(split(pipeline().parameters.endFilePath,'/')),'-','_')",
+										"type": "Expression"
+									},
+									"recordSourceCode": "drfe",
+									"country_code": "@activity('get_client_config').output.firstRow.countryCode",
+									"membership_multipler": "@activity('get_client_config').output.firstRow.groupParameters.membership_multipler"
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "if_condition_loess_forecast",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Client Completion Msg",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(activity('get_client_config').output.firstRow.StatusLOESS,'ON')",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "load_loess_forecast_baseline_unit",
+							"type": "DatabricksNotebook",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"notebookPath": "/dataplatform-retail-alertgeneration/load_loess_forecast_baseline_unit",
+								"baseParameters": {
+									"ADLS_Account_Name": {
+										"value": "@activity('get_client_config').output.firstRow.adlsAccountName",
+										"type": "Expression"
+									},
+									"Retailer_Client": {
+										"value": "@replace(first(split(pipeline().parameters.endFilePath,'/')),'-','_')",
+										"type": "Expression"
+									},
+									"ADF_Pipeline_RunId": {
+										"value": "@pipeline().RunId",
+										"type": "Expression"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "azuredatabricks_alertgen_ls",
+								"type": "LinkedServiceReference"
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "if_condition_drfe_forecast",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Client Completion Msg",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(activity('get_client_config').output.firstRow.StatusDRFE,'ON')",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "forecast_drfe_pl",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "forecast_drfe_pl",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"ADLS_Account_Name": {
+										"value": "@activity('get_client_config').output.firstRow.adlsAccountName",
+										"type": "Expression"
+									},
+									"Retailer_Client": {
+										"value": "@replace(first(split(pipeline().parameters.endFilePath,'/')),'-','_')",
+										"type": "Expression"
+									},
+									"ctry_cd": {
+										"value": "@activity('get_client_config').output.firstRow.countryCode",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "get_client_config",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "BlobSource",
+						"recursive": true
+					},
+					"dataset": {
+						"referenceName": "wasb_alert_generation_ds",
+						"type": "DatasetReference",
+						"parameters": {
+							"fileName": {
+								"value": "@concat('params_alert_generation_',replace(first(split(pipeline().parameters.endFilePath,'/')),'-','_'),'.json')",
+								"type": "Expression"
+							}
+						}
+					},
+					"firstRowOnly": true
+				}
+			},
+			{
+				"name": "Client Completion Msg",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "if_condition_loess_alert",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "if_condition_drfe_alert",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": {
+						"value": "@activity('get_client_config').output.firstRow.eventhubURL",
+						"type": "Expression"
+					},
+					"method": "POST",
+					"headers": {
+						"Authorization": {
+							"value": "@activity('get_client_config').output.firstRow.authorizationURL",
+							"type": "Expression"
+						}
+					},
+					"body": {
+						"layer": "infomart",
+						"datastetName": "@replace(first(split(pipeline().parameters.endFilePath,'/')),'-','_')",
+						"override": "false",
+						"timestamp": "@concat(substring(variables('batch_ts'),4,2),'/',substring(variables('batch_ts'),6,2),'/',substring(variables('batch_ts'),0,4),' ',substring(variables('batch_ts'),8,2),':',substring(variables('batch_ts'),10,2),':',substring(variables('batch_ts'),12,2))"
+					}
+				}
+			},
+			{
+				"name": "Get Batch_Ts",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "get_client_config",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "batch_ts",
+					"value": {
+						"value": "@substring(concat(last(split(substring(pipeline().parameters.endFileName,0,lastindexof(pipeline().parameters.endFileName,'_')),'_')),'000000'),0,14)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "if_endfile_clorox",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "if_condition_drfe_alert",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "if_condition_loess_alert",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(toUpper(replace(first(split(pipeline().parameters.endFilePath,'/')),'-','_')),concat('WALMART_CLOROX','_',toUpper(activity('get_client_config').output.firstRow.countryCode)))",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "copy_endfile",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "BlobSource",
+									"recursive": true
+								},
+								"sink": {
+									"type": "BlobSink"
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "wasb_common_retaillink_ds",
+									"type": "DatasetReference",
+									"parameters": {
+										"folderPath": {
+											"value": "@concat(first(split(pipeline().parameters.endFilePath,'/')),'/infomart_epos_endfile')",
+											"type": "Expression"
+										},
+										"fileName": {
+											"value": "@pipeline().parameters.endFileName",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "wasb_common_retaillink_ds",
+									"type": "DatasetReference",
+									"parameters": {
+										"folderPath": {
+											"value": "@concat(first(split(pipeline().parameters.endFilePath,'/')),'/teamalert_epos_endfile')",
+											"type": "Expression"
+										},
+										"fileName": {
+											"value": "@replace(pipeline().parameters.endFileName,'infomart','teamalert')",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"endFilePath": {
+				"type": "String"
+			},
+			"endFileName": {
+				"type": "String"
+			}
+		},
+		"variables": {
+			"batch_ts": {
+				"type": "String"
+			},
+			"ADLS_Account_Name": {
+				"type": "String"
+			},
+			"Retailer_Client": {
+				"type": "String"
+			},
+			"var_drfee_MAX_LAG": {
+				"type": "String",
+				"defaultValue": "14"
+			}
+		},
+		"annotations": []
+	}
+}

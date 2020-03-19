@@ -1,0 +1,143 @@
+{
+	"name": "lsv_alerts_loess_pl",
+	"properties": {
+		"activities": [
+			{
+				"name": "load_lost_sales_value",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/dataplatform-retail-alertgeneration/load_lost_sales_value",
+					"baseParameters": {
+						"Retailer_Client": {
+							"value": "@pipeline().parameters.Retailer_Client",
+							"type": "Expression"
+						},
+						"recordSourceCode": {
+							"value": "@pipeline().parameters.recordSourceCode",
+							"type": "Expression"
+						},
+						"ADF_Pipeline_RunId": {
+							"value": "@pipeline().RunId",
+							"type": "Expression"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "azuredatabricks_alertgen_ls",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "load_dynamic_retail_osa",
+				"type": "DatabricksNotebook",
+				"dependsOn": [
+					{
+						"activity": "load_lost_sales_value",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/dataplatform-retail-alertgeneration/load_dynamic_retail_osa",
+					"baseParameters": {
+						"ADLS_Account_Name": {
+							"value": "@pipeline().parameters.ADLS_Account_Name",
+							"type": "Expression"
+						},
+						"Retailer_Client": {
+							"value": "@pipeline().parameters.Retailer_Client",
+							"type": "Expression"
+						},
+						"recordSourceCode": {
+							"value": "@pipeline().parameters.recordSourceCode",
+							"type": "Expression"
+						},
+						"ADF_Pipeline_RunId": {
+							"value": "@pipeline().RunId",
+							"type": "Expression"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "azuredatabricks_alertgen_ls",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "load_dynamic_retail_invcleanup",
+				"type": "DatabricksNotebook",
+				"dependsOn": [
+					{
+						"activity": "load_lost_sales_value",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/dataplatform-retail-alertgeneration/load_dynamic_retail_invcleanup",
+					"baseParameters": {
+						"ADLS_Account_Name": {
+							"value": "@pipeline().parameters.ADLS_Account_Name",
+							"type": "Expression"
+						},
+						"Retailer_Client": {
+							"value": "@pipeline().parameters.Retailer_Client",
+							"type": "Expression"
+						},
+						"recordSourceCode": {
+							"value": "@pipeline().parameters.recordSourceCode",
+							"type": "Expression"
+						},
+						"ADF_Pipeline_RunId": {
+							"value": "@pipeline().RunId",
+							"type": "Expression"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "azuredatabricks_alertgen_ls",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"parameters": {
+			"ADLS_Account_Name": {
+				"type": "String"
+			},
+			"Retailer_Client": {
+				"type": "String"
+			},
+			"recordSourceCode": {
+				"type": "String"
+			}
+		},
+		"annotations": []
+	}
+}

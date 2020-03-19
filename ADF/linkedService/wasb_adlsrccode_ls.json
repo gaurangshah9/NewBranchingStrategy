@@ -1,0 +1,16 @@
+{
+	"name": "wasb_adlsrccode_ls",
+	"properties": {
+		"type": "AzureBlobStorage",
+		"typeProperties": {
+			"connectionString": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "kvlt_dataplatform_ls",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "azueus2-sa-srccode-connString"
+			}
+		}
+	}
+}

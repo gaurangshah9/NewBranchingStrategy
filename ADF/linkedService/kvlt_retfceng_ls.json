@@ -1,0 +1,9 @@
+{
+	"name": "kvlt_retfceng_ls",
+	"properties": {
+		"type": "AzureKeyVault",
+		"typeProperties": {
+			"baseUrl": "https://azueus2devkvltretfceng.vault.azure.net/"
+		}
+	}
+}

@@ -1,0 +1,8 @@
+{
+    "type": "ADF Pipeline",
+    "linkedServiceName": "azu-eus2-df-AlertGen_ls",
+    "subscriptionId": "__SubscriptionId__",
+    "resourceGroup": "__ApplicationResourceGroup__",
+    "dataFactoryName": "__ApplicationADF__",
+    "id": "azu-eus2-df-AlertGen_ls"
+}

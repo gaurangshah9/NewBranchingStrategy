@@ -1,0 +1,67 @@
+{
+	"name": "alert_gen_initial_master_pl",
+	"properties": {
+		"activities": [
+			{
+				"name": "get_retailer_client_list_lkup",
+				"type": "Lookup",
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"typeProperties": {
+					"source": {
+						"type": "BlobSource",
+						"recursive": true
+					},
+					"dataset": {
+						"referenceName": "wasb_common_client_list_src_ds",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "frlp_retailer_client_initial",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "get_retailer_client_list_lkup",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('get_retailer_client_list_lkup').output.value",
+						"type": "Expression"
+					},
+					"batchCount": 3,
+					"activities": [
+						{
+							"name": "alert_generation_initial_pl",
+							"type": "ExecutePipeline",
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "alert_generation_initial_pl",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"retailer_client_name": {
+										"value": "@replace(replace(toLower(item().Prop_0),'-',''), ' ','')",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		]
+	}
+}

@@ -1,0 +1,197 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "ApplicationKeyVault": {
+            "minLength": 3,
+            "maxLength": 24,
+            "type": "string"
+        },
+        "ApplicationADF": {
+            "minLength": 3,
+            "maxLength": 64,
+			"type": "string",
+			"metadata": {
+				"description": "Name of the data factory. Must be globally unique"
+			}
+        },
+        "ApplicationDatabricksWorkspace": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 30,
+            "metadata": {
+                "description": "The name of the Azure Databricks workspace to create."
+            }
+        },
+        "GitHubProxyURL": {
+            "type": "string",
+            "metadata": {
+                "description": "The URL for the Azure Function to retrieve a linked template from GitHub"
+            }
+        },
+        "ServicePrincipalGroupObjectId": {
+            "type": "string",
+            "metadata": {
+                "description": "The AAD Object ID for the azu_sg_data_svcspn{environment} group"
+            }
+        },
+        "tags": {
+          "type": "object",
+          "metadata": {
+            "description": "Object containing all Tags separated by comma Ex.: \"BusinessUnit\": \"Data Architecture\", \"CostCenter\": \"11131100\""
+          }
+        },
+        "LogAnalyticsRG": {
+          "type": "string",
+          "metadata": {
+            "description": "The name of the Log Analytics workspace"
+          }
+        },
+        "LogAnalyticsWorkspace": {
+          "type": "string",
+          "metadata": {
+            "description": "The name of the Log Analytics workspace"
+          }
+        },
+        "LogAnalyticsSubscriptionId": {
+          "type": "string",
+          "metadata": {
+            "description": "The name of the Log Analytics workspace"
+          }
+        }
+    },
+    "variables": {
+        "managedResourceGroupName": "[concat('databricks-rg-', parameters('ApplicationDatabricksWorkspace'), '-', uniqueString(parameters('ApplicationDatabricksWorkspace'), resourceGroup().id))]",
+        "LogAnalyticsWorkspaceId" : "[resourceId(parameters('LogAnalyticsSubscriptionId'), parameters('LogAnalyticsRG'), 'Microsoft.OperationalInsights/workspaces', parameters('LogAnalyticsWorkspace'))]",
+        "diagnosticsSettingName": "DataPlatformMonitor"
+    },
+    "resources": [
+        {
+            "apiVersion": "2018-05-01",
+            "name": "linkedKeyvault",
+            "type": "Microsoft.Resources/deployments",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(parameters('GitHubProxyURL'),'&location=https://raw.githubusercontent.com/AcostaEnterprise/DataPlatform-Infrastructure/development/LinkedTemplates/KeyVault/Infrastructure.KeyVault.template.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "ApplicationKeyVault": {
+                        "value": "[parameters('ApplicationKeyVault')]"
+                    },
+                    "ServicePrincipalGroupObjectId": {
+                        "value": "[parameters('ServicePrincipalGroupObjectId')]"
+                    },
+                    "extraPolicies": {
+                        "value": [
+                            {
+                                "comments" : "Azure Data Factory Managed Service Identity",
+                                "tenantId": "[subscription().tenantId]",
+                                "objectId": "[reference(concat('Microsoft.DataFactory/factories/',parameters('ApplicationADF')),'2018-06-01','Full').identity.PrincipalId]",
+                                "permissions": {
+                                    "secrets": [
+                                        "get","list","set"
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[parameters('ApplicationADF')]"
+            ]
+        },
+        {
+            "type": "Microsoft.Databricks/workspaces",
+            "name": "[parameters('ApplicationDatabricksWorkspace')]",
+            "tags": "[parameters('tags')]",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2018-04-01",
+            "sku": {
+                "name": "premium"
+            },
+            "properties": {
+                "ManagedResourceGroupId": "[concat(subscription().id, '/resourceGroups/', variables('managedResourceGroupName'))]"
+            }            
+        },
+        {
+            "comments":"Live Data Factory",
+            "name": "[parameters('ApplicationADF')]",
+            "tags": "[parameters('tags')]",
+            "type": "Microsoft.DataFactory/factories",
+            "apiVersion": "2018-06-01",
+            "location": "[resourceGroup().location]",
+            "identity": {
+              "type": "SystemAssigned"
+            },
+            "properties": {},
+            "resources": [
+                {
+                    "type": "Microsoft.DataFactory/factories/providers/diagnosticsettings",
+                    "name": "[concat(parameters('ApplicationADF'),'/Microsoft.Insights/', variables('diagnosticsSettingName'))]",
+                    "apiVersion": "2017-05-01-preview",
+                    "location": "[resourceGroup().location]",
+                    "dependsOn": [
+                      "[resourceId('Microsoft.DataFactory/factories', parameters('ApplicationADF'))]"
+                    ],
+                    "properties": {
+                      "name": "[variables('diagnosticsSettingName')]",
+                      "workspaceId": "[variables('LogAnalyticsWorkspaceId')]",
+                      "logAnalyticsDestinationType": "Dedicated",
+                      "logs": [ 
+                        {
+                          "category": "ActivityRuns",
+                          "enabled": true,
+                          "retentionPolicy": {
+                            "days": 0,
+                            "enabled": false
+                          }
+                        },
+                        {
+                            "category": "PipelineRuns",
+                            "enabled": true,
+                            "retentionPolicy": {
+                              "days": 0,
+                              "enabled": false
+                            }
+                        },
+                        {
+                            "category": "TriggerRuns",
+                            "enabled": true,
+                            "retentionPolicy": {
+                              "days": 0,
+                              "enabled": false
+                            }
+                        }
+                      ],
+                      "metrics": [
+                        {
+                          "category": "AllMetrics",
+                          "enabled": true,
+                          "retentionPolicy": {
+                            "enabled": false,
+                            "days": 0
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+        }
+    ],
+    "outputs": {
+      "tenantId": {
+        "type": "string",
+        "value": "[subscription().tenantId]"
+      },
+      "subscriptionId": {
+        "type": "string",
+        "value": "[subscription().subscriptionId]"
+      }
+    }
+}

@@ -1,0 +1,9 @@
+{
+	"name": "kvlt_dataplatform_ls",
+	"properties": {
+		"type": "AzureKeyVault",
+		"typeProperties": {
+			"baseUrl": "https://azueus2devkvltdatapltfm.vault.azure.net/"
+		}
+	}
+}
